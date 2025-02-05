@@ -14,13 +14,19 @@ model Type {
 }
 
 model PokemonCard {
-  id        Int    @id @default(autoincrement())
-  name      String @unique
-  pokedexld Int    @unique
-  type      Type   @relation(fields: [typeID], references: [id])
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  pokedexld Int     @unique
+  type      Type    @relation(fields: [typeID], references: [id])
   typeID    Int
   lifePoint Int
   weight    Float?
   size      Float?
-  imageUrl String?
+  imageUrl  String?
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
 }
