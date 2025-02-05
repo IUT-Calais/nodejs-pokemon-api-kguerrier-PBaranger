@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { connect } from 'http2';
 
+const bcrypt = require("bcrypt")
 const prisma = new PrismaClient();
 
 async function main() {
@@ -51,6 +52,59 @@ async function main() {
 
     },
   });
+
+  await prisma.pokemonCard.create({
+    data: {
+
+      "name": "Carabaffe",
+      "pokedexld": 8,
+      "size": 1,
+      "type": { connect: { id: 3 } }, // Référence à l'id de la table types
+      "lifePoint": 143,
+      "weight": 22.5,
+      "imageUrl": "https://assets.pokemon.com/assets/cms2/img/pokedex/full/009.png"
+
+    },
+  });
+
+
+  await prisma.pokemonCard.create({
+    data: {
+
+      "name": "Phyllali",
+      "pokedexld": 470,
+      "size": 1,
+      "type": { connect: { id:  4} }, // Référence à l'id de la table types
+      "lifePoint": 196,
+      "weight": 25.5,
+      "imageUrl": "https://assets.pokemon.com/assets/cms2/img/pokedex/full/470.png"
+
+    },
+  });
+
+
+  await prisma.pokemonCard.create({
+    data: {
+
+      "name": "Dialga",
+      "pokedexld": 483,
+      "size": 5.4,
+      "type": { connect: { id: 15} }, // Référence à l'id de la table types
+      "lifePoint": 220,
+      "weight": 683,
+      "imageUrl": "https://assets.pokemon.com/assets/cms2/img/pokedex/full/483.png"
+
+    },
+  });
+
+  
+  const hashedPassword = await bcrypt.hash("admin", 10);
+  await prisma.user.create({
+    data: {
+      "email": "admin@gmail.com",
+      "password": hashedPassword
+    }
+  })
 
   console.log('Seed completed!');
 }
