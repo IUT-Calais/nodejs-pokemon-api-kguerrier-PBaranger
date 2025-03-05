@@ -2,6 +2,7 @@ import express from 'express';
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { pokemonRouter } from './pokemon/pokemon.router'
+import { userRouter } from './user/user.router'
 
 export const app = express();
 const port = process.env.PORT || 3000;
@@ -27,6 +28,8 @@ export function stopServer() {
 // });
 
 app.use('/pokemon-cards', pokemonRouter);
+app.use('/users', userRouter);
+
 // app.get('/pokemons-cards/', async (_req, res) => {
 //   const poke = await prisma.pokemonCard.findMany({ include: { type: true } });
 //   res.status(200).send(poke);
