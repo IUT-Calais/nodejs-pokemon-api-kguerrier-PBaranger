@@ -6,22 +6,30 @@ info:
 servers:
   - url: http://localhost:3000
     description: Serveur local
+
+tags:
+  - name: User
+  - name: Pokemon
 paths:
   /users:
     get:
+      tags:
+        - User
       summary: Récupère tous les utilisateurs
       responses:
         "200":
-          description: Liste des utilisateurs avec leurs posts
+          description: Liste des utilisateurs
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/UserWithPosts"
-        "204":
-          description: Aucun utilisateur trouvé
+                  $ref: "#/components/schemas/User"
+        # "204":
+        #   description: Aucun utilisateur trouvé
     post:
+      tags:
+        - User
       summary: Crée un nouvel utilisateur
       security:
         - bearerAuth: []
@@ -30,11 +38,8 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: John Doe
+              $ref: "#/components/schemas/User"
+
       responses:
         "201":
           description: Utilisateur créé
@@ -43,7 +48,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
         "401":
-          description: Non autorisé (token manquant ou invalide)
+          description: Non autorisé
           content:
             application/json:
               schema:
@@ -52,33 +57,45 @@ paths:
                   error:
                     type: string
                     example: Unauthorized
-  /users/{userId}:
-    get:
-      summary: Récupère un utilisateur par son ID
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID de l'utilisateur
-      responses:
-        "200":
-          description: Utilisateur trouvé avec ses posts
+        "400":
+          description: Impossible de créer l'utilisateur, email déjà existant
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserWithPosts"
-        "404":
-          description: Utilisateur non trouvé
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: Utilisateur non trouvé
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email déjà existant
+  # /users/{userId}:
+  #   get:
+  #     summary: Récupère un utilisateur par son ID
+  #     parameters:
+  #       - name: userId
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: integer
+  #         description: ID de l'utilisateur
+  #     responses:
+  #       "200":
+  #         description: Utilisateur trouvé avec ses posts
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/UserWithPosts"
+  #       "404":
+  #         description: Utilisateur non trouvé
+  #         content:
+  #           text/plain:
+  #             schema:
+  #               type: string
+  #               example: Utilisateur non trouvé
 
   /pokemon-cards:
     get:
+      tags:
+        - Pokemon
       summary: Récupère tous les pokemons
       responses:
         "200":
@@ -92,6 +109,8 @@ paths:
 
   /pokemon-cards/{pokemonCardId}:
     get:
+      tags:
+        - Pokemon
       summary: Récupère un pokemon par son ID
       parameters:
         - name: pokemonCardId
@@ -116,7 +135,9 @@ paths:
                 example: Pokemon non trouvé
 
   /pokemon-cards/create:
-    get:
+    post:
+      tags:
+        - Pokemon
       summary: Créer un pokemons
       security:
         - bearerAuth: []
@@ -142,38 +163,64 @@ paths:
               schema:
                 type: string
                 example: Pokemon non créé
-    # post:
-    #   summary: Crée un nouvel utilisateur
-    #   security:
-    #     - bearerAuth: []
-    #   requestBody:
-    #     required: true
-    #     content:
-    #       application/json:
-    #         schema:
-    #           type: object
-    #           properties:
-    #             name:
-    #               type: string
-    #               example: John Doe
-    #   responses:
-    #     "201":
-    #       description: Utilisateur créé
-    #       content:
-    #         application/json:
-    #           schema:
-    #             $ref: "#/components/schemas/PokemonCard"
-    #     "401":
-    #       description: Non autorisé (token manquant ou invalide)
-    #       content:
-    #         application/json:
-    #           schema:
-    #             type: object
-    #             properties:
-    #               error:
-    #                 type: string
-    #                 example: Unauthorized
 
+  /pokemon-cards/delete/{pokemonCardId}:
+    delete:
+      tags:
+        - Pokemon
+      summary: Supprimer un pokemon par son ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pokemonCardId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du pokemon
+      responses:
+        "200":
+          description: Pokemon supprimé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PokemonCard"
+        "404":
+          description: Pokemon impossible à supprimer
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Impossible de supprimer le pokemon
+
+  /pokemon-cards/update/{pokemonCardId}:
+    patch:
+      tags:
+        - Pokemon
+      summary: Mettre à jour un pokemon par son ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pokemonCardId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID du pokemon
+      responses:
+        "200":
+          description: Pokemon à mettre à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PokemonCard"
+        "404":
+          description: Pokemon non trouvé
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Pokemon non trouvé
 components:
   securitySchemes:
     bearerAuth:
@@ -189,7 +236,7 @@ components:
           example: 1
         name:
           type: string
-          example: John Doe
+          example: user1@mail.com
         pasword:
           type: string
           example: password123#
