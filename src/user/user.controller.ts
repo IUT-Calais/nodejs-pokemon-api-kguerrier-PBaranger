@@ -6,11 +6,17 @@ import jwt from 'jsonwebtoken';
 const prisma = new PrismaClient();
 
 
-// export const getUser = async (_req: Request, res: Response) => {
-//     // res.status(200).send('Liste des utilisateur');
-//     const use = await prisma.user.findMany();
-//     res.status(200).send(use);
-// }
+export const getUser = async (_req: Request, res: Response) => {
+    try {
+        const use = await prisma.user.findMany();
+        res.status(200).send(use);
+    }
+    catch (error) {
+        res.status(500).send({ message: 'Une erreur est survenue lors de la récupération de l\'utilisateur' });
+    }
+}
+
+
 
 export const postUserCreate = async (_req: Request, res: Response) => {
     try {
@@ -32,7 +38,7 @@ export const postUserCreate = async (_req: Request, res: Response) => {
         if (!user_create) {
             res.status(404).send("Impossible de créer l'utilisateur.");
         }
-        res.status(201).send(`${_req.body.email} vient d'être ajouté dans la base de donnée`);
+        res.status(201).send(user_create);
     } catch (error) {
         res.status(500).json({ error: "Il y a une erreur." });
 
@@ -63,13 +69,18 @@ export const postUserLogin = async (_req: Request, res: Response) => {
 
         const token = jwt.sign(
             { username: email }, // Payload
+            // OU ??????
+            // { id: user.id, email: user.email },
+            // { userId: userFetched!.id, email: userFetched!.email },
+
             process.env.JWT_SECRET as jwt.Secret, // Secret
             { expiresIn: process.env.JWT_EXPIRES_IN } // Expiration
-            // {expiresIn:1d}
+            // { expiresIn: "1d" }
+
         );
-        res.status(200).json({
-            myToken: token,
-        })
+
+        res.status(201).json({ myToken: "Connexion réussie", token, })
+
 
         // res.status(200).send(user_login);
     } catch (error) {
