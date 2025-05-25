@@ -10,9 +10,10 @@ export const getUser = async (_req: Request, res: Response) => {
     try {
         const use = await prisma.user.findMany();
         res.status(200).send(use);
+        return
     }
     catch (error) {
-        res.status(500).send({ message: 'Une erreur est survenue lors de la récupération de l\'utilisateur' });
+        res.status(500).send({ error: 'Une erreur est survenue lors de la récupération de l\'utilisateur' });
     }
 }
 
@@ -20,13 +21,18 @@ export const getUser = async (_req: Request, res: Response) => {
 
 export const postUserCreate = async (_req: Request, res: Response) => {
     try {
+
         const { email, password } = _req.body
         const hashedPassword = await bcrypt.hash(password, 10);
+        if (email == null || password == null) {
+            res.status(400).send({ error: "Champs requis manquants." });
+            return;
+        }
         const user_unique_email = await prisma.user.findUnique({
             where: { email }
         })
         if (user_unique_email) {
-            res.status(400).send("L'email existe déjà.");
+            res.status(400).send({ error: "L'email existe déjà." });
             return
         }
         const user_create = await prisma.user.create({
@@ -37,10 +43,12 @@ export const postUserCreate = async (_req: Request, res: Response) => {
         });
         if (!user_create) {
             res.status(404).send("Impossible de créer l'utilisateur.");
+            return
         }
-        res.status(201).send(user_create);
+        res.status(201).send("Utilisateur créé");
+        return
     } catch (error) {
-        res.status(500).json({ error: "Il y a une erreur." });
+        res.status(500).send({ error: "Il y a une erreur." });
 
     }
 }
@@ -55,35 +63,80 @@ export const postUserLogin = async (_req: Request, res: Response) => {
         })
 
         if (!user_login_email) {
-            res.status(404).send("L'utilisateur n'existe pas.");
+            res.status(404).send({ error: "L'utilisateur n'existe pas." });
             return
         }
 
         const test_password = await bcrypt.compare(password, user_login_email.password);
-        if (test_password == true) {
-            res.status(201).send("La connexion à réussi");
-        }
-        else {
-            res.status(400).send("Le mot de passe ne correspond pas à l'utilisateur.");
+
+        if (!test_password) {
+            res.status(400).send({ error: "Le mot de passe ne correspond pas à l'utilisateur." });
+            return;
         }
 
         const token = jwt.sign(
-            { username: email }, // Payload
-            // OU ??????
-            // { id: user.id, email: user.email },
-            // { userId: userFetched!.id, email: userFetched!.email },
-
+            { username: email },
             process.env.JWT_SECRET as jwt.Secret, // Secret
-            { expiresIn: process.env.JWT_EXPIRES_IN } // Expiration
-            // { expiresIn: "1d" }
-
+            // { expiresIn: process.env.JWT_EXPIRES_IN } // Expiration
+            { expiresIn: "1d" }
         );
 
-        res.status(201).json({ myToken: "Connexion réussie", token, })
-
-
-        // res.status(200).send(user_login);
+        res.status(201).send("Connexion réussie");
+        return
     } catch (error) {
-        res.status(500).json({ error: "Il y a une erreur." });
+        res.status(500).send({ error: "Il y a une erreur." });
+    }
+}
+
+
+export const deleteUserId = async (_req: Request, res: Response) => {
+    try {
+        const userId = parseInt(_req.params.userId);
+
+        if (isNaN(userId)) {
+            res.status(400).send({ error: "ID de l'utilisateur non valide." });
+            return
+        }
+
+        await prisma.user.delete({
+            where: { id: userId }
+        });
+
+        res.status(200).send("Utilisateur supprimé");
+        return
+    }
+    catch (error) {
+        res.status(500).send("Error.");
+    }
+}
+
+export const updateUserId = async (_req: Request, res: Response) => {
+    const { userCardId } = _req.params
+
+    try {
+        const userId = parseInt(_req.params.userId);
+
+        if (isNaN(userId)) {
+            res.status(400).send({ error: "ID de l'utilisateur non valide." });
+            return
+        }
+
+        const { email, password } = _req.body;
+
+        if (!email || !password) {
+            res.status(400).send({ error: "Il manque des informations." });
+            return
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: { email, "password": hashedPassword },
+        });
+
+        res.status(200).send(updatedUser);
+        return
+    } catch (error) {
+        res.status(500).send("Error.");
     }
 }
