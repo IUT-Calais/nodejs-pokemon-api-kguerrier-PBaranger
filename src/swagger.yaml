@@ -2,14 +2,18 @@ openapi: 3.0.0
 info:
   title: Prisma User API
   version: 1.0.0
-  description: API pour gérer les utilisateurs et leurs posts
+  description: API pour gérer les utilisateurs et les pokemons
+
 servers:
   - url: http://localhost:3000
     description: Serveur local
 
 tags:
   - name: User
+    description: Permet de gérer les utilisateurs
   - name: Pokemon
+    description: Permet de gérer les pokemons
+
 paths:
   /users:
     get:
@@ -67,30 +71,6 @@ paths:
                   error:
                     type: string
                     example: Email déjà existant
-  # /users/{userId}:
-  #   get:
-  #     summary: Récupère un utilisateur par son ID
-  #     parameters:
-  #       - name: userId
-  #         in: path
-  #         required: true
-  #         schema:
-  #           type: integer
-  #         description: ID de l'utilisateur
-  #     responses:
-  #       "200":
-  #         description: Utilisateur trouvé avec ses posts
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/UserWithPosts"
-  #       "404":
-  #         description: Utilisateur non trouvé
-  #         content:
-  #           text/plain:
-  #             schema:
-  #               type: string
-  #               example: Utilisateur non trouvé
 
   /pokemon-cards:
     get:
@@ -227,9 +207,12 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
   schemas:
     User:
       type: object
+      required: -email
+        -password
       properties:
         id:
           type: integer
@@ -240,8 +223,15 @@ components:
         pasword:
           type: string
           example: password123#
+
     PokemonCard:
       type: object
+      required: -name
+        -pokedexld
+        -type
+        -typeID
+        -lifePoint
+
       properties:
         id:
           type: integer
@@ -255,7 +245,6 @@ components:
         size:
           type: integer
           example: 1
-
         typeID:
           type: integer
           example: 3
@@ -268,25 +257,3 @@ components:
         imageUrl:
           type: string
           example: https://assets.pokemon.com/assets/cms2/img/pokedex/full/008.png
-
-    Post:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        title:
-          type: string
-          example: My First Post
-        authorId:
-          type: integer
-          example: 1
-    UserWithPosts:
-      allOf:
-        - $ref: "#/components/schemas/User"
-        - type: object
-          properties:
-            posts:
-              type: array
-              items:
-                $ref: "#/components/schemas/Post"
